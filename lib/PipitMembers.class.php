@@ -133,7 +133,6 @@ class PipitMembers {
         }
 
         $token = $this->generate_token($Member);
-        // $this->add_tag( $this->verify_tag_prefix . $token, $memberID );
 
         // email URL to member
         $memberEmail = $Member->memberEmail();
@@ -184,14 +183,11 @@ class PipitMembers {
 
         
         $parts = $this->decode_token($token);
-        // PerchUtil::debug($parts);
-        // PerchUtil::debug($Member->to_array());
-
+        
         if($parts['memberID'] == $Member->id()
             && $parts['memberEmail'] == $Member->memberEmail() 
             && $parts['memberCreated'] == $Member->memberCreated() ) {
 
-            PerchUtil::mark('here 2');
 
             // add tag
             $this->add_tag($this->email_verified_tag, $memberID);
@@ -199,10 +195,12 @@ class PipitMembers {
         } 
         
         
-        PerchUtil::mark('here f');
         
         return false;
     }
+
+
+
 
 
 
@@ -238,6 +236,9 @@ class PipitMembers {
 
 
 
+
+
+
     /**
      * 
      */
@@ -258,6 +259,8 @@ class PipitMembers {
 
 
 
+
+    
     /**
      * generate token
      */
