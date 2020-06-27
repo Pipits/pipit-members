@@ -174,123 +174,98 @@
 
     
     /**
-     * 
+     * @param PerchAPI_SubmittedForm
      */
     function pipit_members_form_handler($SubmittedForm) {
-        if($SubmittedForm->validate()) {
+        if( !$SubmittedForm->validate() ) return false;
 
-            switch($SubmittedForm->formID) {
-                case 'member_auth':
-                    if(!perch_member_logged_in()) {
-                        $SubmittedForm->throw_error('unauthorized', 'all');
-                    }
+        if( !pipit_members_is_authorized_submission($SubmittedForm) || !perch_member_logged_in() ) {
+            $SubmittedForm->throw_error('unauthorized', 'token');
+            return false;
+        }
+        
 
-                    if(!isset($SubmittedForm->data['token']) || $SubmittedForm->data['token'] != perch_member_get('token')) {
-                        $SubmittedForm->throw_error('unauthorized', 'token');
-                    }
-                break;
-
+        switch($SubmittedForm->formID) {
+            case 'member_auth':
+            break;
 
 
-                case 'logout':
-                    if(!perch_member_logged_in()) continue;
+            case 'logout':
+                perch_member_log_out();
+            break;
 
-                    if(!isset($SubmittedForm->data['token']) || $SubmittedForm->data['token'] != perch_member_get('token')) {
-                        $SubmittedForm->throw_error('unauthorized', 'token');
+
+            case 'remove_tag':
+                $tag_attr =  isset($SubmittedForm->form_attributes['tag']) ? $SubmittedForm->form_attributes['tag'] : '';
+                $tags = explode(',', $tag_attr);
+                foreach($tags as $tag) {
+                    perch_member_remove_tag($tag);
+                }
+            break;
+
+
+            case 'add_tag':
+                $tag_attr =  isset($SubmittedForm->form_attributes['tag']) ? $SubmittedForm->form_attributes['tag'] : '';
+                $tags = explode(',', $tag_attr);
+                foreach($tags as $tag) {
+                    perch_member_add_tag($tag);
+                }
+            break;
+
+
+
+            case 'send_verify_email':
+                if(!isset($SubmittedForm->data['token']) || $SubmittedForm->data['token'] != perch_member_get('token')) {
+                    $SubmittedForm->throw_error('unauthorized', 'token');
+                } else {
+
+                    $expiry_tag_diff = pipit_members_tag_expiry('email-verify-created', true);
+
+                    
+                    if(pipit_member_has_tag('email-verify-created') && $expiry_tag_diff < 0) {
+                        PerchUtil::debug('Verification email was sent less than 10 minutes ago',  'notice');
+                        $redirect = isset($SubmittedForm->form_attributes['fail']) ? $SubmittedForm->form_attributes['fail'] : '';
                     } else {
-                        perch_member_log_out();
-                    }
-                break;
-
-
-
-                case 'send_verify_email':
-                    if(!isset($SubmittedForm->data['token']) || $SubmittedForm->data['token'] != perch_member_get('token')) {
-                        $SubmittedForm->throw_error('unauthorized', 'token');
-                    } else {
-
-                        $expiry_tag_diff = pipit_members_tag_expiry('email-verify-created', true);
-
-                        
-                        if(pipit_member_has_tag('email-verify-created') && $expiry_tag_diff < 0) {
-                            PerchUtil::debug('Verification email was sent less than 10 minutes ago',  'notice');
-                            $redirect = isset($SubmittedForm->form_attributes['fail']) ? $SubmittedForm->form_attributes['fail'] : '';
-                        } else {
-                            pipit_members_email_verification();
-                            $redirect = isset($SubmittedForm->form_attributes['r']) ? $SubmittedForm->form_attributes['r'] : '';
-                        }
-
-                        if($redirect) PerchSystem::redirect($redirect);
-                    }
-                break;
-
-
-
-                case 'remove_tag':
-                    if(!perch_member_logged_in()) continue;
-
-                    if(!isset($SubmittedForm->data['token']) || $SubmittedForm->data['token'] != perch_member_get('token')) {
-                        $SubmittedForm->throw_error('unauthorized', 'token');
-                    } else {
-                        $tag_attr =  isset($SubmittedForm->form_attributes['tag']) ? $SubmittedForm->form_attributes['tag'] : '';
-                        $tags = explode(',', $tag_attr);
-                        foreach($tags as $tag) {
-                            perch_member_remove_tag($tag);
-                        }
-                    }
-                break;
-
-
-
-                case 'add_tag':
-                    if(!perch_member_logged_in()) continue;
-
-                    if(!isset($SubmittedForm->data['token']) || $SubmittedForm->data['token'] != perch_member_get('token')) {
-                        $SubmittedForm->throw_error('unauthorized', 'token');
-                    } else {
-                        $tag_attr =  isset($SubmittedForm->form_attributes['tag']) ? $SubmittedForm->form_attributes['tag'] : '';
-                        $tags = explode(',', $tag_attr);
-                        foreach($tags as $tag) {
-                            perch_member_add_tag($tag);
-                        }
-
+                        pipit_members_email_verification();
                         $redirect = isset($SubmittedForm->form_attributes['r']) ? $SubmittedForm->form_attributes['r'] : '';
-                        if($redirect) PerchSystem::redirect($redirect);
                     }
-                break;
-            }
+
+                    if($redirect) PerchSystem::redirect($redirect);
+                }
+            break;
+        }
 
 
 
 
-            // get form attributes
-            $attrs = $apps = [];
-            $Tag = $SubmittedForm->get_form_attributes();
+        // get form attributes
+        $attrs = $apps = [];
+        $Tag = $SubmittedForm->get_form_attributes();
 
-            if (is_object($Tag) && isset($Tag->attributes)) {
-                $attrs = $Tag->attributes;
-            }
+        if (is_object($Tag) && isset($Tag->attributes)) {
+            $attrs = $Tag->attributes;
+        }
 
-            // redispatch to other apps?
-            if(isset($attrs['redispatch']) && $attrs['redispatch'] != '') {
-                $apps = explode(' ', trim($attrs['redispatch'])); 
-            }
+        // redispatch to other apps?
+        if(isset($attrs['redispatch']) && $attrs['redispatch'] != '') {
+            $apps = explode(' ', trim($attrs['redispatch'])); 
+        }
 
-            if(count($apps)) {
-                foreach($apps as $app) {
-                    PerchUtil::mark($app);
-                    if (function_exists($app.'_form_handler') ) {
-                        $SubmittedForm->redispatch($app);
-                    }
+        if(count($apps)) {
+            foreach($apps as $app) {
+                PerchUtil::mark($app);
+                if (function_exists($app.'_form_handler') ) {
+                    $SubmittedForm->redispatch($app);
                 }
             }
-
-
-
-            // redirect?
-            $redirect = isset($SubmittedForm->form_attributes['r']) ? $SubmittedForm->form_attributes['r'] : '';
-            if($redirect) PerchSystem::redirect($redirect);
         }
+
+
+
+        // redirect?
+        $redirect = isset($SubmittedForm->form_attributes['r']) ? $SubmittedForm->form_attributes['r'] : '';
+        if($redirect) PerchSystem::redirect($redirect);
+        
     }
 
 
