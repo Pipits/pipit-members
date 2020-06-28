@@ -26,7 +26,7 @@
      */
     function pipit_members_add_tag($tag, $id_or_email, $expiry_date=false) {
         $PipitMembers = new PipitMembers;
-        return $PipitMembers->add_tag($tag, $id_or_email, $expiry_date);
+        return $PipitMembers->add_tag(trim($tag), $id_or_email, $expiry_date);
     }
 
 
@@ -40,7 +40,7 @@
      */
     function pipit_members_remove_tag($tag, $id_or_email) {
         $PipitMembers = new PipitMembers;
-        return $PipitMembers->remove_tag($tag, $id_or_email);
+        return $PipitMembers->remove_tag(trim($tag), $id_or_email);
     }
 
 
@@ -53,7 +53,7 @@
      * @param int|string $id_or_email
      * @return boolean
      */
-    function pipit_member_has_tag($tag, $id_or_email=0) {
+    function pipit_members_has_tag($tag, $id_or_email=0) {
         $PipitMembers = new PipitMembers;
 
         if(!$id_or_email && perch_member_logged_in()) {
@@ -61,7 +61,7 @@
         }
 
 
-        return $PipitMembers->has_tag($tag, $id_or_email);
+        return $PipitMembers->has_tag(trim($tag), $id_or_email);
     }
 
 
@@ -110,7 +110,7 @@
                 $add_tags = explode(',', $add_tag);
                 if(count($add_tags)) {
                     foreach($add_tags as $tag) {
-                        perch_member_add_tag($tag);
+                        perch_member_add_tag( trim($tag) );
                     }
                 }
             } 
@@ -120,7 +120,7 @@
                 $remove_tags = explode(',', $remove_tag);
                 if(count($remove_tags)) {
                     foreach($remove_tags as $tag) {
-                        perch_member_remove_tag($tag);
+                        perch_member_remove_tag( trim($tag) );
                     }
                 }
             }
@@ -139,7 +139,7 @@
                     $add_tags = explode(',', $add_tag);
                     if(count($add_tags)) {
                         foreach($add_tags as $tag) {
-                            pipit_members_add_tag($tag, $memberID);
+                            pipit_members_add_tag(trim($tag), $memberID);
                         }
                     }
                 }
@@ -149,7 +149,7 @@
                     $remove_tags = explode(',', $add_tag);
                     if(count($remove_tags)) {
                         foreach($remove_tags as $tag) {
-                            pipit_members_remove_tag($tag, $memberID);
+                            pipit_members_remove_tag(trim($tag), $memberID);
                         }
                     }
                 }
@@ -199,7 +199,7 @@
                 $tag_attr =  isset($SubmittedForm->form_attributes['tag']) ? $SubmittedForm->form_attributes['tag'] : '';
                 $tags = explode(',', $tag_attr);
                 foreach($tags as $tag) {
-                    perch_member_remove_tag($tag);
+                    perch_member_remove_tag( trim($tag) );
                 }
             break;
 
@@ -208,7 +208,7 @@
                 $tag_attr =  isset($SubmittedForm->form_attributes['tag']) ? $SubmittedForm->form_attributes['tag'] : '';
                 $tags = explode(',', $tag_attr);
                 foreach($tags as $tag) {
-                    perch_member_add_tag($tag);
+                    perch_member_add_tag( trim($tag) );
                 }
             break;
 
@@ -226,7 +226,7 @@
                         PerchUtil::debug('Verification email was sent less than 10 minutes ago',  'notice');
                         $redirect = isset($SubmittedForm->form_attributes['fail']) ? $SubmittedForm->form_attributes['fail'] : '';
                     } else {
-                        pipit_members_email_verification();
+                        pipit_members_send_email_verification();
                         $redirect = isset($SubmittedForm->form_attributes['r']) ? $SubmittedForm->form_attributes['r'] : '';
                     }
 
@@ -293,7 +293,7 @@
      * 
      */
     function pipit_members_tag_expiry($tag, $return_diff=false) {
-        $API = new PerchAPI(1.0, 'pipit_twilio');
+        $API = new PerchAPI(1.0, 'perch_members');
         $DB = $API->get('DB');
         
         $member_tags_table = PERCH_DB_PREFIX . 'members_member_tags';
