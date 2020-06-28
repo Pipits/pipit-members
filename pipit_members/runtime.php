@@ -24,7 +24,11 @@
      * @param int|string $id_or_email
      * @param string|boolean $expiry_date
      */
-    function pipit_members_add_tag($tag, $id_or_email, $expiry_date=false) {
+    function pipit_members_add_tag($tag, $id_or_email=0, $expiry_date=false) {
+        if(!$id_or_email && perch_member_logged_in()) {
+            $id_or_email = perch_member_get('id');
+        }
+
         $PipitMembers = new PipitMembers;
         return $PipitMembers->add_tag(trim($tag), $id_or_email, $expiry_date);
     }
@@ -38,7 +42,11 @@
      * @param string $tag
      * @param int|string $id_or_email
      */
-    function pipit_members_remove_tag($tag, $id_or_email) {
+    function pipit_members_remove_tag($tag, $id_or_email=0) {
+        if(!$id_or_email && perch_member_logged_in()) {
+            $id_or_email = perch_member_get('id');
+        }
+
         $PipitMembers = new PipitMembers;
         return $PipitMembers->remove_tag(trim($tag), $id_or_email);
     }
@@ -54,13 +62,12 @@
      * @return boolean
      */
     function pipit_members_has_tag($tag, $id_or_email=0) {
-        $PipitMembers = new PipitMembers;
-
         if(!$id_or_email && perch_member_logged_in()) {
             $id_or_email = perch_member_get('id');
         }
-
-
+        
+        
+        $PipitMembers = new PipitMembers;
         return $PipitMembers->has_tag(trim($tag), $id_or_email);
     }
 
@@ -296,14 +303,21 @@
         $API = new PerchAPI(1.0, 'perch_members');
         $DB = $API->get('DB');
         
+        $member_tags_table  = PERCH_DB_PREFIX . 'members_member_tags';
+        $tags_table         = PERCH_DB_PREFIX . 'members_tags';
+        
+
         if(!$memberID) {
-            $member_tags_table = PERCH_DB_PREFIX . 'members_member_tags';
-            $tags_table = PERCH_DB_PREFIX . 'members_tags';
             $memberID = perch_member_get('id');
         }
         
 
-        $expiry_tag = $DB->get_value("SELECT tagExpires FROM $member_tags_table WHERE memberID=$memberID AND tagID IN (SELECT tagID from $tags_table WHERE tag=". $DB->pdb($tag) .") LIMIT 1");
+        $expiry_tag = $DB->get_value(
+            "SELECT tagExpires FROM $member_tags_table
+            WHERE memberID=$memberID
+            AND tagID IN (SELECT tagID from $tags_table WHERE tag=". $DB->pdb($tag) .") LIMIT 1"
+        );
+        
 
         if($return_diff && $expiry_tag) {
             $new_time = date('Y-m-d H:i:s');
