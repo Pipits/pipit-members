@@ -292,13 +292,15 @@
     /**
      * 
      */
-    function pipit_members_tag_expiry($tag, $return_diff=false) {
+    function pipit_members_tag_expiry($tag, $return_diff=false, $memberID=0) {
         $API = new PerchAPI(1.0, 'perch_members');
         $DB = $API->get('DB');
         
-        $member_tags_table = PERCH_DB_PREFIX . 'members_member_tags';
-        $tags_table = PERCH_DB_PREFIX . 'members_tags';
-        $memberID = perch_member_get('id');
+        if(!$memberID) {
+            $member_tags_table = PERCH_DB_PREFIX . 'members_member_tags';
+            $tags_table = PERCH_DB_PREFIX . 'members_tags';
+            $memberID = perch_member_get('id');
+        }
         
 
         $expiry_tag = $DB->get_value("SELECT tagExpires FROM $member_tags_table WHERE memberID=$memberID AND tagID IN (SELECT tagID from $tags_table WHERE tag=". $DB->pdb($tag) .") LIMIT 1");
