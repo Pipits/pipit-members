@@ -240,6 +240,32 @@
                     if($redirect) PerchSystem::redirect($redirect);
                 }
             break;
+
+
+
+
+            case 'collection_item':
+                $collection = isset($SubmittedForm->form_attributes['collection']) ? $SubmittedForm->form_attributes['collection'] : '';
+
+                if($collection) {
+                    // process response
+                } else {
+                    PerchUtil::debug('The collection attribute is not specified.', 'notice');
+                }
+
+            break;
+
+
+
+            case 'delete_collection_item':
+                $collection = isset($SubmittedForm->form_attributes['collection']) ? $SubmittedForm->form_attributes['collection'] : '';
+
+                if($collection) {
+                    // process response
+                } else {
+                    PerchUtil::debug('The collection attribute is not specified.', 'notice');
+                }
+            break;
         }
 
 
