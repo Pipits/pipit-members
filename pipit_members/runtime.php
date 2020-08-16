@@ -205,17 +205,45 @@
             case 'remove_tag':
                 $tag_attr =  isset($SubmittedForm->form_attributes['tag']) ? $SubmittedForm->form_attributes['tag'] : '';
                 $tags = explode(',', $tag_attr);
-                foreach($tags as $tag) {
-                    perch_member_remove_tag( trim($tag) );
+
+                if($tag_attr) {
+                    foreach($tags as $tag) {
+                        perch_member_remove_tag( trim($tag) );
+                    }
                 }
             break;
 
 
             case 'add_tag':
                 $tag_attr =  isset($SubmittedForm->form_attributes['tag']) ? $SubmittedForm->form_attributes['tag'] : '';
-                $tags = explode(',', $tag_attr);
-                foreach($tags as $tag) {
-                    perch_member_add_tag( trim($tag) );
+
+                if($tag_attr) {
+                    $tags = explode(',', $tag_attr);
+                    foreach($tags as $tag) {
+                        perch_member_add_tag( trim($tag) );
+                    }
+                }
+            break;
+
+
+            case 'tags':
+                $add_tag_attr =  isset($SubmittedForm->form_attributes['add_tag']) ? $SubmittedForm->form_attributes['add_tag'] : '';
+                if($add_tag_attr) {
+                    $add_tags = explode(',', $add_tag_attr);
+
+                    foreach($add_tags as $tag) {
+                        perch_member_add_tag( trim($tag) );
+                    }
+                }
+
+
+                $remove_tag_attr =  isset($SubmittedForm->form_attributes['remove_tag']) ? $SubmittedForm->form_attributes['remove_tag'] : '';
+                if($remove_tag_attr) {
+                    $remove_tag = explode(',', $remove_tag_attr);
+
+                    foreach($remove_tag as $tag) {
+                        perch_member_remove_tag( trim($tag) );
+                    }
                 }
             break;
 
