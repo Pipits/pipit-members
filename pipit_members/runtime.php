@@ -1,5 +1,6 @@
 <?php
     include(__DIR__ . '/lib/PipitMembers.class.php');
+    include(__DIR__ . '/lib/PipitMembers_Collections.class.php');
 
 
 
@@ -257,7 +258,7 @@
                     $expiry_tag_diff = pipit_members_tag_expiry('email-verify-created', true);
 
                     
-                    if(pipit_member_has_tag('email-verify-created') && $expiry_tag_diff < 0) {
+                    if(pipit_members_has_tag('email-verify-created') && $expiry_tag_diff < 0) {
                         PerchUtil::debug('Verification email was sent less than 10 minutes ago',  'notice');
                         $redirect = isset($SubmittedForm->form_attributes['fail']) ? $SubmittedForm->form_attributes['fail'] : '';
                     } else {
@@ -273,25 +274,24 @@
 
 
             case 'collection_item':
-                $collection = isset($SubmittedForm->form_attributes['collection']) ? $SubmittedForm->form_attributes['collection'] : '';
+                $MembersCollection = new PipitMembers_Collection;
+                $result = $MembersCollection->process_form_response($SubmittedForm);
 
-                if($collection) {
-                    // process response
-                } else {
-                    PerchUtil::debug('The collection attribute is not specified.', 'notice');
+                if(!$result) {
+                    $redirect = isset($SubmittedForm->form_attributes['fail']) ? $SubmittedForm->form_attributes['fail'] : '';
+                    if($redirect) PerchSystem::redirect($redirect);
                 }
-
             break;
 
 
 
             case 'delete_collection_item':
-                $collection = isset($SubmittedForm->form_attributes['collection']) ? $SubmittedForm->form_attributes['collection'] : '';
+                $MembersCollection = new PipitMembers_Collection;
+                $result = $MembersCollection->process_delete_form_response($SubmittedForm);
 
-                if($collection) {
-                    // process response
-                } else {
-                    PerchUtil::debug('The collection attribute is not specified.', 'notice');
+                if(!$result) {
+                    $redirect = isset($SubmittedForm->form_attributes['fail']) ? $SubmittedForm->form_attributes['fail'] : '';
+                    if($redirect) PerchSystem::redirect($redirect);
                 }
             break;
         }
