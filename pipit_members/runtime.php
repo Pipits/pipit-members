@@ -17,6 +17,18 @@
     }
 
 
+    
+    /**
+     * 
+     * @param mixed $id_or_email 
+     * @param string $prop
+     * @return mixed
+     */
+    function pipit_members_get_prop($id_or_email, $prop) {
+        $PipitMembers = new PipitMembers;
+        return $PipitMembers->get_member_property($id_or_email, $prop);    
+    }
+
 
 
     /**

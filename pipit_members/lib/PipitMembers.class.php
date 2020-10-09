@@ -31,6 +31,19 @@ class PipitMembers {
     
 
 
+    /**
+     * 
+     */
+    public function get_member_property($id_or_email, $prop) {
+        $Member = $this->find_member($id_or_email);
+        if(!is_object($Member)) return false;
+
+        $data = $Member->to_array();
+
+        if(isset($data[$prop]) && !empty($data[$prop])) return $data[$prop];
+        return false;
+    }
+
 
 
     /**
